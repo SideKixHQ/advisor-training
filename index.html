@@ -655,7 +655,7 @@ document.addEventListener('keydown', function(e){
 
 /* ---------------- Google Sheet submission ---------------- */
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx0fTYir6Z6NT9F49q8aTW_00H1B7OWNUkVjN_oujB9fCo6wFD-jPe1E_qnaXVGdsBI/exec';
-function sendCompletionRecord(trainingId, trainingTitle, startedAt, completedAt){
+function sendCompletionRecord(trainingId, trainingTitle, startedAt, completedAt, score, total, attempts){
   if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf('PASTE_YOUR') === 0){
     console.warn('Apps Script URL not configured yet — completion not sent to sheet.');
     return;
@@ -671,7 +671,11 @@ function sendCompletionRecord(trainingId, trainingTitle, startedAt, completedAt)
         trainingId: trainingId,
         trainingTitle: trainingTitle || trainingId,
         startedAt: startedAt || '',
-        completedAt: completedAt || new Date().toISOString()
+        completedAt: completedAt || new Date().toISOString(),
+        score: score,
+        total: total,
+        result: 'Pass',
+        attempts: attempts
       })
     });
   }catch(e){
@@ -687,15 +691,48 @@ function markStarted(id){
     saveProgress(p);
   }
 }
-function markCompleted(id){
+function markCompleted(id, score, total){
   const p = getProgress();
   const existing = p[id] || {};
   const startedAt = existing.startedAt || new Date().toISOString();
   const completedAt = new Date().toISOString();
-  p[id] = { status:'completed', startedAt: startedAt, completedAt: completedAt };
+  p[id] = {
+    status:'completed',
+    startedAt: startedAt,
+    completedAt: completedAt,
+    attempts: existing.attempts || 1,
+    score: score,
+    total: total
+  };
   saveProgress(p);
   const training = TRAININGS.find(t=> t.id === id);
-  sendCompletionRecord(id, training ? training.title : id, startedAt, completedAt);
+  sendCompletionRecord(id, training ? training.title : id, startedAt, completedAt,
+                       score, total, p[id].attempts);
+}
+
+/* Every finished knowledge check is logged, pass or fail, so the sheet shows
+   who is struggling and not only who got through. */
+function recordAttempt(id, score, total, passed){
+  const p = getProgress();
+  const existing = p[id] || {};
+  const attempts = (existing.attempts || 0) + 1;
+  existing.attempts = attempts;
+  if(!existing.status) existing.status = 'in_progress';
+  if(!existing.startedAt) existing.startedAt = new Date().toISOString();
+  p[id] = existing;
+  saveProgress(p);
+  const training = TRAININGS.find(t=> t.id === id);
+  postToSheet({
+    type: 'attempt',
+    name: getAdvisorName() || 'Unknown',
+    trainingId: id,
+    trainingTitle: training ? training.title : id,
+    score: score,
+    total: total,
+    result: passed ? 'Pass' : 'Fail',
+    attempt: attempts,
+    attemptedAt: new Date().toISOString()
+  });
 }
 
 /* ---------------- Screen switching ---------------- */
@@ -845,6 +882,8 @@ function renderHub(){
     const metaLines = [];
     if(entry.startedAt) metaLines.push(`Started <b>${fmtDate(entry.startedAt)}</b>`);
     if(entry.completedAt) metaLines.push(`Completed <b>${fmtDate(entry.completedAt)}</b>`);
+    if(entry.score != null && entry.total) metaLines.push(`Score <b>${entry.score}/${entry.total}</b>`);
+    if(entry.attempts > 1) metaLines.push(`Attempts <b>${entry.attempts}</b>`);
 
     const ctaLabel = status === 'completed' ? 'Review training' : status === 'in_progress' ? 'Continue training' : 'Start training';
     const ctaClass = status === 'not_started' ? 'primary' : 'secondary';
@@ -1317,7 +1356,8 @@ function showResults(){
   document.getElementById('bmPostPassRow').style.display = bmPassed ? 'flex' : 'none';
   document.getElementById('bmPostFailRow').style.display = bmPassed ? 'none' : 'flex';
   document.getElementById('bmCertOptin').style.display = bmPassed ? 'block' : 'none';
-  if(bmPassed) markCompleted(TRAINING_ID);
+  recordAttempt(TRAINING_ID, score, quiz.length, bmPassed);
+  if(bmPassed) markCompleted(TRAINING_ID, score, quiz.length);
   document.getElementById('bmClaimBtn').disabled = true;
   document.getElementById('bmAckCheck').checked = false;
 }
@@ -1919,7 +1959,8 @@ function showResults(){
   document.getElementById('afPostPassRow').style.display = passed ? 'flex' : 'none';
   document.getElementById('afPostFailRow').style.display = passed ? 'none' : 'flex';
   document.getElementById('afCertOptin').style.display = passed ? 'block' : 'none';
-  if(passed) markCompleted(TRAINING_ID);
+  recordAttempt(TRAINING_ID, score, quiz.length, passed);
+  if(passed) markCompleted(TRAINING_ID, score, quiz.length);
   document.getElementById('afClaimBtn').disabled = true;
   document.getElementById('afAckCheck').checked = false;
 }
@@ -2451,7 +2492,8 @@ function showResults(){
   document.getElementById('eiPostPassRow').style.display = eiPassed ? 'flex' : 'none';
   document.getElementById('eiPostFailRow').style.display = eiPassed ? 'none' : 'flex';
   document.getElementById('eiCertOptin').style.display = eiPassed ? 'block' : 'none';
-  if(eiPassed) markCompleted(TRAINING_ID);
+  recordAttempt(TRAINING_ID, score, quiz.length, eiPassed);
+  if(eiPassed) markCompleted(TRAINING_ID, score, quiz.length);
   document.getElementById('eiClaimBtn').disabled = true;
   document.getElementById('eiAckCheck').checked = false;
 }
@@ -2880,7 +2922,8 @@ function showResults(){
   document.getElementById('scPostPassRow').style.display = scPassed ? 'flex' : 'none';
   document.getElementById('scPostFailRow').style.display = scPassed ? 'none' : 'flex';
   document.getElementById('scCertOptin').style.display = scPassed ? 'block' : 'none';
-  if(scPassed) markCompleted(TRAINING_ID);
+  recordAttempt(TRAINING_ID, score, quiz.length, scPassed);
+  if(scPassed) markCompleted(TRAINING_ID, score, quiz.length);
   document.getElementById('scClaimBtn').disabled = true;
   document.getElementById('scAckCheck').checked = false;
 }
@@ -3332,7 +3375,8 @@ function showResults(){
   document.getElementById('aqPostPassRow').style.display = aqPassed ? 'flex' : 'none';
   document.getElementById('aqPostFailRow').style.display = aqPassed ? 'none' : 'flex';
   document.getElementById('aqCertOptin').style.display = aqPassed ? 'block' : 'none';
-  if(aqPassed) markCompleted(TRAINING_ID);
+  recordAttempt(TRAINING_ID, score, quiz.length, aqPassed);
+  if(aqPassed) markCompleted(TRAINING_ID, score, quiz.length);
   document.getElementById('aqClaimBtn').disabled = true;
   document.getElementById('aqAckCheck').checked = false;
 }
@@ -3888,7 +3932,8 @@ function showResults(){
   document.getElementById('mcPostPassRow').style.display = passed ? 'flex' : 'none';
   document.getElementById('mcPostFailRow').style.display = passed ? 'none' : 'flex';
   document.getElementById('mcCertOptin').style.display = passed ? 'block' : 'none';
-  if(passed) markCompleted(TRAINING_ID);
+  recordAttempt(TRAINING_ID, score, quiz.length, passed);
+  if(passed) markCompleted(TRAINING_ID, score, quiz.length);
   document.getElementById('mcClaimBtn').disabled = true;
   document.getElementById('mcAckCheck').checked = false;
 }
@@ -4556,7 +4601,8 @@ function showResults(){
   document.getElementById('trPostPassRow').style.display = passed ? 'flex' : 'none';
   document.getElementById('trPostFailRow').style.display = passed ? 'none' : 'flex';
   document.getElementById('trCertOptin').style.display = passed ? 'block' : 'none';
-  if(passed) markCompleted(TRAINING_ID);
+  recordAttempt(TRAINING_ID, score, quiz.length, passed);
+  if(passed) markCompleted(TRAINING_ID, score, quiz.length);
   document.getElementById('trClaimBtn').disabled = true;
   document.getElementById('trAckCheck').checked = false;
 }
@@ -5117,7 +5163,8 @@ function showResults(){
   document.getElementById('mbPostPassRow').style.display = passed ? 'flex' : 'none';
   document.getElementById('mbPostFailRow').style.display = passed ? 'none' : 'flex';
   document.getElementById('mbCertOptin').style.display = passed ? 'block' : 'none';
-  if(passed) markCompleted(TRAINING_ID);
+  recordAttempt(TRAINING_ID, score, quiz.length, passed);
+  if(passed) markCompleted(TRAINING_ID, score, quiz.length);
   document.getElementById('mbClaimBtn').disabled = true;
   document.getElementById('mbAckCheck').checked = false;
 }
@@ -5678,7 +5725,8 @@ function showResults(){
   document.getElementById('ncPostPassRow').style.display = passed ? 'flex' : 'none';
   document.getElementById('ncPostFailRow').style.display = passed ? 'none' : 'flex';
   document.getElementById('ncCertOptin').style.display = passed ? 'block' : 'none';
-  if(passed) markCompleted(TRAINING_ID);
+  recordAttempt(TRAINING_ID, score, quiz.length, passed);
+  if(passed) markCompleted(TRAINING_ID, score, quiz.length);
   document.getElementById('ncClaimBtn').disabled = true;
   document.getElementById('ncAckCheck').checked = false;
 }
