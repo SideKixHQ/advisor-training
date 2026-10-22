@@ -39,6 +39,35 @@ version. The **ID** is what appears in the spreadsheet and in `localStorage`.
 The **prefix** namespaces that module's element IDs and its global functions
 (`af_goTo`, `af_nextQ`, `af_showCert` and so on).
 
+### Before Module 1: Your Advisor Style (`style-assessment`)
+
+Not a module. An eleven question style assessment with no right answers: every
+option meets the SideKix Standard and maps to one of four styles (Guide,
+Strategist, Challenger, Supporter). The most chosen style is the advisor's
+Primary Style; ties go to the answer on the final question, which doubles as
+the tiebreaker. The runner up is the Secondary Style. Options are shuffled on
+render. No pass/fail, no certificate; retakes overwrite the result.
+
+On finish it posts a `completion` record (Result = primary style, Score and
+Out Of blank) and a `style` record:
+
+```json
+{"type":"style","name":"Jane Doe","completedAt":"2026-10-22T18:57:14.336Z",
+ "primaryStyle":"Challenger","secondaryStyle":"Supporter",
+ "guide":3,"strategist":0,"challenger":5,"supporter":3,
+ "answers":"challenger,guide,...","attempts":1}
+```
+
+`style` records land in `Unrouted` until `apps-script-style-handler.gs` is
+added to the script; after that they upsert into a `Styles` tab keyed on
+Advisor Name, which is the source for member filtering and AI pairing.
+
+### Optional: The Energy Discovery
+
+An external link card at the bottom of the hub to
+https://sidekixhq.com/assessment.html. Opens in a new tab, not tracked, not
+counted in the hub stats. Add more in `OPTIONAL_TRAININGS`.
+
 ---
 
 ## How it works
