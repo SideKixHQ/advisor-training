@@ -202,7 +202,7 @@
 
   .btnrow{display:flex; gap:12px; justify-content:center; margin-top:22px; flex-wrap:wrap;}
 
-  /* ---------- Advisor Style assessment ---------- */
+  /* ---------- Advisor Style Discovery ---------- */
   .opt.selected{border-color:var(--gold); background:rgba(212,168,86,0.1);}
   .sa-mix{margin:8px 0 34px; max-width:520px;}
   .sa-row{display:flex; align-items:center; gap:14px; margin-bottom:10px; font-family:'Poppins',sans-serif; font-size:13.5px; color:var(--muted);}
@@ -758,7 +758,7 @@ function showScreen(id){
   });
   window.scrollTo(0,0);
   if(id === 'hub') renderHub();
-  if(id === 'style-assessment' && typeof window.sa_open === 'function') window.sa_open();
+  if(id === 'style-discovery' && typeof window.sa_open === 'function') window.sa_open();
   const screenEl = document.getElementById('screen-'+id);
   if(screenEl){
     screenEl.querySelectorAll('.fb-block.sent').forEach(function(b){
@@ -806,7 +806,7 @@ function labelNextButtons(){
 /* ---------------- Hub rendering ---------------- */
 const TRAININGS = [
   {
-    id:'style-assessment',
+    id:'style-discovery',
     title:'Your Advisor Style',
     tag:'Start here',
     duration:'5 to 8 min',
@@ -946,7 +946,7 @@ function renderHub(){
       <h2>${t.title}</h2>
       <p class="desc">${t.desc}</p>
       <div class="meta"><div>${t.duration}</div></div>
-      <a class="hub-cta secondary" href="${t.url}" target="_blank" rel="noopener">Take the assessment ↗<span class="visually-hidden"> (opens in a new tab)</span></a>
+      <a class="hub-cta secondary" href="${t.url}" target="_blank" rel="noopener">Take the Discovery ↗<span class="visually-hidden"> (opens in a new tab)</span></a>
     `;
     grid.appendChild(card);
   });
@@ -975,8 +975,8 @@ document.addEventListener('DOMContentLoaded', function(){ labelNextButtons(); pr
 
 </div>
 
-<div id="screen-style-assessment" class="screen" style="display:none;">
-<nav class="trail" aria-label="Assessment">
+<div id="screen-style-discovery" class="screen" style="display:none;">
+<nav class="trail" aria-label="Advisor Style Discovery">
   <div class="trail-inner">
     <button onclick="backToHub()" class="backlink">← All trainings</button>
   </div>
@@ -991,13 +991,13 @@ document.addEventListener('DOMContentLoaded', function(){ labelNextButtons(); pr
       <div class="label">How this works</div>
       Every answer here meets the SideKix Standard. There are no wrong answers, only different ways of leading a session. Pick the option closest to what you would actually do, not the one that sounds best. Your result becomes your Advisor Style, which members can filter by and which helps SideKix pair you with the members you are best suited to guide.
     </div>
-    <button class="cta" onclick="sa_begin()">Begin assessment →</button>
+    <button class="cta" onclick="sa_begin()">Begin the Discovery →</button>
   </div>
 </header>
 
 <section class="block" id="sa-quiz" style="display:none;">
   <div class="wrap">
-    <div class="kicker">Advisor Style Assessment</div>
+    <div class="kicker">Advisor Style Discovery</div>
     <div class="qcount" id="saQcount"></div>
     <div class="progressbar"><div class="progressbar-fill" id="saQbar"></div></div>
     <div id="saQuestions"></div>
@@ -1022,7 +1022,7 @@ document.addEventListener('DOMContentLoaded', function(){ labelNextButtons(); pr
     <p class="note" id="saResultSecondary"></p>
     <p class="note">Every style meets the SideKix Standard. Your style describes how you lead a session, not how well. Most Advisors use all four at different moments; this is the one you reach for first.</p>
     <div class="btnrow">
-      <button class="btn-ghost" onclick="sa_retake()">Retake assessment</button>
+      <button class="btn-ghost" onclick="sa_retake()">Retake the Discovery</button>
       <button class="cta next-training-btn" onclick="goToNextTraining()">Next Training →</button>
     </div>
   </div>
@@ -1032,7 +1032,7 @@ document.addEventListener('DOMContentLoaded', function(){ labelNextButtons(); pr
 
 <script>
 (function(){
-const SA_ID = 'style-assessment';
+const SA_ID = 'style-discovery';
 const STYLE_ORDER = ['guide','strategist','challenger','supporter'];
 const STYLES = {
   guide: {
@@ -1205,7 +1205,7 @@ function score(){
 function showResult(r){
   const s = STYLES[r.primary];
   document.getElementById('sa-quiz').style.display = 'none';
-  document.querySelector('#screen-style-assessment .hero').style.display = 'none';
+  document.querySelector('#screen-style-discovery .hero').style.display = 'none';
   document.getElementById('sa-result').style.display = 'block';
   document.getElementById('saResultName').textContent = s.name;
   document.getElementById('saResultTagline').textContent = s.tagline;
@@ -1262,13 +1262,13 @@ window.sa_next = function(){
 };
 window.sa_retake = function(){
   document.getElementById('sa-result').style.display = 'none';
-  document.querySelector('#screen-style-assessment .hero').style.display = 'block';
+  document.querySelector('#screen-style-discovery .hero').style.display = 'block';
   sa_begin();
 };
 /* called by showScreen: completed advisors land on their result */
 window.sa_open = function(){
   const e = getProgress()[SA_ID];
-  const hero = document.querySelector('#screen-style-assessment .hero');
+  const hero = document.querySelector('#screen-style-discovery .hero');
   document.getElementById('sa-quiz').style.display = 'none';
   if(e && e.status === 'completed' && e.primaryStyle){
     showResult({ primary:e.primaryStyle, secondary:e.secondaryStyle || '', counts:e.counts || {} });
@@ -1521,7 +1521,7 @@ const waypoints = [
   {id:'bm-experience', label:'Experience'},
   {id:'bm-mindset', label:'Mindset'},
   {id:'bm-practice', label:'Practice'},
-  {id:'bm-assessment', label:'Assessment'},
+  {id:'bm-assessment', label:'Knowledge Check'},
 ];
 const trailNav = document.getElementById('bmTrailNav');
 waypoints.forEach((w,i)=>{
@@ -2094,7 +2094,7 @@ const waypoints = [
   {id:'se-framework', label:'The Insight-Action Frame…'},
   {id:'se-dump', label:'Avoid the information dump'},
   {id:'af-practice', label:'Practice'},
-  {id:'af-assessment', label:'Assessment'},
+  {id:'af-assessment', label:'Knowledge Check'},
 ];
 const trailNav = document.getElementById('afTrailNav');
 waypoints.forEach((w,i)=>{
@@ -2635,7 +2635,7 @@ const waypoints = [
   {id:'ei-backgrounds', label:'Different Backgrounds'},
   {id:'ei-referral', label:'Referring Out'},
   {id:'ei-practice', label:'Practice'},
-  {id:'ei-assessment', label:'Assessment'},
+  {id:'ei-assessment', label:'Knowledge Check'},
 ];
 const trailNav = document.getElementById('eiTrailNav');
 waypoints.forEach((w,i)=>{
@@ -3087,7 +3087,7 @@ const waypoints = [
   {id:'sc-reality', label:'The Reality'},
   {id:'sc-scenarios', label:'Five Scenarios'},
   {id:'sc-practice', label:'Practice'},
-  {id:'sc-assessment', label:'Assessment'},
+  {id:'sc-assessment', label:'Knowledge Check'},
 ];
 const trailNav = document.getElementById('scTrailNav');
 waypoints.forEach((w,i)=>{
@@ -3540,7 +3540,7 @@ const waypoints = [
   {id:'aq-pause', label:'Power of Pause'},
   {id:'aq-leading', label:'Leading Questions'},
   {id:'aq-practice', label:'Practice'},
-  {id:'aq-assessment', label:'Assessment'},
+  {id:'aq-assessment', label:'Knowledge Check'},
 ];
 const trailNav = document.getElementById('aqTrailNav');
 waypoints.forEach((w,i)=>{
@@ -4078,7 +4078,7 @@ const waypoints = [
   {id:'fj-adaptation', label:'The Advisor Adaptation M…'},
   {id:'pg-question', label:'The most important SideK…'},
   {id:'mc-practice', label:'Practice'},
-  {id:'mc-assessment', label:'Assessment'},
+  {id:'mc-assessment', label:'Knowledge Check'},
 ];
 const trailNav = document.getElementById('mcTrailNav');
 waypoints.forEach((w,i)=>{
@@ -4734,7 +4734,7 @@ const waypoints = [
   {id:'tt-disagreement', label:'Managing disagreement wi…'},
   {id:'tt-emotional', label:'Handling emotional conve…'},
   {id:'tr-practice', label:'Practice'},
-  {id:'tr-assessment', label:'Assessment'},
+  {id:'tr-assessment', label:'Knowledge Check'},
 ];
 const trailNav = document.getElementById('trTrailNav');
 waypoints.forEach((w,i)=>{
@@ -5309,7 +5309,7 @@ const waypoints = [
   {id:'bt-conditions', label:'Create conditions, not c…'},
   {id:'bt-framework', label:'The Breakthrough Convers…'},
   {id:'mb-practice', label:'Practice'},
-  {id:'mb-assessment', label:'Assessment'},
+  {id:'mb-assessment', label:'Knowledge Check'},
 ];
 const trailNav = document.getElementById('mbTrailNav');
 waypoints.forEach((w,i)=>{
@@ -5860,7 +5860,7 @@ const waypoints = [
   {id:'ab-contribute', label:'Contribute value'},
   {id:'ab-feedback', label:'Feedback is a growth too…'},
   {id:'nc-practice', label:'Practice'},
-  {id:'nc-assessment', label:'Assessment'},
+  {id:'nc-assessment', label:'Knowledge Check'},
 ];
 const trailNav = document.getElementById('ncTrailNav');
 waypoints.forEach((w,i)=>{

@@ -39,9 +39,9 @@ version. The **ID** is what appears in the spreadsheet and in `localStorage`.
 The **prefix** namespaces that module's element IDs and its global functions
 (`af_goTo`, `af_nextQ`, `af_showCert` and so on).
 
-### Before Module 1: Your Advisor Style (`style-assessment`)
+### Before Module 1: Your Advisor Style (`style-discovery`)
 
-Not a module. An eleven question style assessment with no right answers: every
+Not a module. An eleven question style Discovery with no right answers: every
 option meets the SideKix Standard and maps to one of four styles (Guide,
 Strategist, Challenger, Supporter). The most chosen style is the advisor's
 Primary Style; ties go to the answer on the final question, which doubles as

@@ -2,7 +2,7 @@
  * Advisor Style handler for the Advisor Training Tracker.
  *
  * The training app posts {type:"style", ...} when an advisor finishes the
- * Advisor Style assessment. Until this handler is added, those posts land in
+ * Advisor Style Discovery. Until this handler is added, those posts land in
  * the "Unrouted" tab with the raw body, so nothing is lost.
  *
  * To install:
