@@ -215,6 +215,8 @@
   .sa-n{width:20px; text-align:right;}
   .sa-cards .fcard p{color:var(--paper);}
   #saResultName{max-width:none;}
+  .sa-retake-note{text-align:center; color:var(--muted); font-size:15px; margin:30px 0 0;}
+  .sa-retake-note:empty{display:none;}
   .visually-hidden{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
   .card.optional{border-style:dashed;}
   .badge.optional{color:var(--muted); background:none; border:1px solid var(--line);}
@@ -1023,8 +1025,9 @@ document.addEventListener('DOMContentLoaded', function(){ labelNextButtons(); pr
     </div>
     <p class="note" id="saResultSecondary"></p>
     <p class="note">Every style meets the SideKix Standard. Your style describes how you lead a session, not how well. Most Advisors use all five at different moments; this is the one you reach for first.</p>
+    <p class="sa-retake-note" id="saRetakeNote" role="status"></p>
     <div class="btnrow">
-      <button class="btn-ghost" onclick="sa_retake()">Retake the Discovery</button>
+      <button class="btn-ghost" id="saRetakeBtn" onclick="sa_retake()">Retake the Discovery</button>
       <button class="cta next-training-btn" onclick="goToNextTraining()">Next Training →</button>
     </div>
   </div>
@@ -1037,6 +1040,24 @@ document.addEventListener('DOMContentLoaded', function(){ labelNextButtons(); pr
 const SA_ID = 'style-discovery';
 /* The five Advisor Styles, named exactly as they appear in the SideKix app so
    results can feed the member filter and AI pairing directly. */
+/* Advisors can retake the Discovery once every 30 days. */
+const RETAKE_DAYS = 30;
+function nextRetakeAt(){
+  const e = getProgress()[SA_ID];
+  if(!e || !e.completedAt) return null;
+  const t = new Date(e.completedAt).getTime() + RETAKE_DAYS*24*60*60*1000;
+  return t > Date.now() ? t : null;
+}
+function updateRetake(){
+  const btn = document.getElementById('saRetakeBtn');
+  const note = document.getElementById('saRetakeNote');
+  const next = nextRetakeAt();
+  btn.disabled = !!next;
+  note.textContent = next
+    ? `The Discovery can be retaken once every ${RETAKE_DAYS} days. Your next retake opens ${fmtDate(new Date(next).toISOString())}.`
+    : '';
+}
+
 const STYLE_ORDER = ['action','supportive','strategic','challenging','collaborative'];
 const STYLES = {
   action: {
@@ -1242,6 +1263,7 @@ function showResult(r){
   document.getElementById('saResultSecondary').textContent = r.secondary
     ? `Your secondary style is ${STYLES[r.secondary].name}. It tends to show up when your first instinct is not the right fit for the moment.`
     : '';
+  updateRetake();
   const h = document.getElementById('saResultName');
   h.setAttribute('tabindex','-1'); h.focus();
 }
@@ -1284,6 +1306,7 @@ window.sa_next = function(){
   else finish();
 };
 window.sa_retake = function(){
+  if(nextRetakeAt()){ updateRetake(); return; }
   document.getElementById('sa-result').style.display = 'none';
   document.querySelector('#screen-style-discovery .hero').style.display = 'block';
   sa_begin();

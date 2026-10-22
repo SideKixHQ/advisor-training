@@ -47,8 +47,11 @@ used in the SideKix app, named identically: Action Oriented, Supportive &
 Encouraging, Strategic, Challenging & Honest, Collaborative. The most chosen
 style is the advisor's Primary Style; ties go to the answer on the final
 question, which doubles as the tiebreaker. The runner up is the Secondary
-Style. Options are shuffled on render. No pass/fail, no certificate; retakes
-overwrite the result.
+Style. Options are shuffled on render. No pass/fail, no certificate. Retakes
+are limited to once every 30 days (`RETAKE_DAYS`), counted from the last
+completion; the button stays disabled with the reopen date shown. The app
+enforces this per device, and the Apps Script handler enforces it in the
+`Styles` tab, logging blocked retakes to `Style Retakes Blocked`.
 
 On finish it posts a `completion` record (Result = primary style, Score and
 Out Of blank) and a `style` record:
