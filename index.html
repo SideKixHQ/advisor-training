@@ -207,12 +207,14 @@
   .sa-mix{margin:8px 0 34px; max-width:520px;}
   .sa-row{display:flex; align-items:center; gap:14px; margin-bottom:10px; font-family:'Poppins',sans-serif; font-size:13.5px; color:var(--muted);}
   .sa-row.top{color:var(--cream); font-weight:600;}
-  .sa-lab{width:96px; flex-shrink:0;}
+  .sa-lab{width:200px; flex-shrink:0;}
+  @media (max-width:560px){ .sa-row{flex-wrap:wrap; gap:4px 12px;} .sa-lab{width:100%;} }
   .sa-track{flex:1; height:8px; background:var(--panel-2); border-radius:4px; overflow:hidden;}
   .sa-fill{display:block; height:100%; background:var(--line-ui); border-radius:4px;}
   .sa-row.top .sa-fill{background:var(--gold);}
   .sa-n{width:20px; text-align:right;}
   .sa-cards .fcard p{color:var(--paper);}
+  #saResultName{max-width:none;}
   .visually-hidden{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
   .card.optional{border-style:dashed;}
   .badge.optional{color:var(--muted); background:none; border:1px solid var(--line);}
@@ -811,7 +813,7 @@ const TRAININGS = [
     tag:'Start here',
     duration:'5 to 8 min',
     ctaDone:'View your style',
-    desc:'Eleven real session moments, four good ways to handle each. Your answers reveal the style you lead with: Guide, Strategist, Challenger or Supporter. Members can filter by it, and it helps pair you with the right members.'
+    desc:'Eleven real session moments, five good ways to handle each. Your answers reveal which of the five Advisor Styles members see in the app you lead with: Action Oriented, Supportive & Encouraging, Strategic, Challenging & Honest or Collaborative.'
   },
   {
     id:'brand-mission',
@@ -915,7 +917,7 @@ function renderHub(){
     const metaLines = [];
     if(entry.startedAt) metaLines.push(`Started <b>${fmtDate(entry.startedAt)}</b>`);
     if(entry.completedAt) metaLines.push(`Completed <b>${fmtDate(entry.completedAt)}</b>`);
-    if(entry.primaryStyle) metaLines.push(`Style <b>${entry.primaryStyle.charAt(0).toUpperCase()+entry.primaryStyle.slice(1)}</b>`);
+    if(entry.primaryStyleName) metaLines.push(`Style <b>${entry.primaryStyleName}</b>`);
     if(entry.score != null && entry.total) metaLines.push(`Score <b>${entry.score}/${entry.total}</b>`);
     if(entry.attempts > 1) metaLines.push(`Attempts <b>${entry.attempts}</b>`);
 
@@ -986,7 +988,7 @@ document.addEventListener('DOMContentLoaded', function(){ labelNextButtons(); pr
   <div class="wrap">
     <div class="eyebrow"><span class="diamond"></span>Start Here · Self Discovery</div>
     <h1>Your Advisor Style</h1>
-    <p class="sub">Eleven situations. Four good ways to handle each. Which one is most like you?</p>
+    <p class="sub">Eleven situations. Five good ways to handle each. Which one is most like you?</p>
     <div class="objective">
       <div class="label">How this works</div>
       Every answer here meets the SideKix Standard. There are no wrong answers, only different ways of leading a session. Pick the option closest to what you would actually do, not the one that sounds best. Your result becomes your Advisor Style, which members can filter by and which helps SideKix pair you with the members you are best suited to guide.
@@ -1020,7 +1022,7 @@ document.addEventListener('DOMContentLoaded', function(){ labelNextButtons(); pr
       <div class="fcard"><div class="num">Something to watch</div><p id="saResultWatch"></p></div>
     </div>
     <p class="note" id="saResultSecondary"></p>
-    <p class="note">Every style meets the SideKix Standard. Your style describes how you lead a session, not how well. Most Advisors use all four at different moments; this is the one you reach for first.</p>
+    <p class="note">Every style meets the SideKix Standard. Your style describes how you lead a session, not how well. Most Advisors use all five at different moments; this is the one you reach for first.</p>
     <div class="btnrow">
       <button class="btn-ghost" onclick="sa_retake()">Retake the Discovery</button>
       <button class="cta next-training-btn" onclick="goToNextTraining()">Next Training →</button>
@@ -1033,35 +1035,44 @@ document.addEventListener('DOMContentLoaded', function(){ labelNextButtons(); pr
 <script>
 (function(){
 const SA_ID = 'style-discovery';
-const STYLE_ORDER = ['guide','strategist','challenger','supporter'];
+/* The five Advisor Styles, named exactly as they appear in the SideKix app so
+   results can feed the member filter and AI pairing directly. */
+const STYLE_ORDER = ['action','supportive','strategic','challenging','collaborative'];
 const STYLES = {
-  guide: {
-    name:'The Guide',
-    tagline:'You lead with questions, and members leave having found the answer themselves.',
-    how:'Curious and patient. You ask more than you tell, follow the thread of what a member says, and help them reach their own conclusions. Members come away with ownership of the decision and more confidence in their own thinking.',
-    fit:'Members exploring an early idea, members who want to sharpen their own judgment, and members who resist being told what to do.',
-    watch:'A member under time pressure or in crisis may want more direction than questions alone provide. Discovery lands best when it still closes on a clear next step.'
+  action: {
+    name:'Action Oriented',
+    tagline:'You turn talk into motion, and members leave already moving.',
+    how:'Energetic and forward leaning. You take initiative in the conversation, push past analysis toward a decision, and look for the inventive solution that gets things unstuck. Members come away with momentum and a first move they can make right away.',
+    fit:'Members stuck in planning mode, members working against a deadline, and members who learn best by doing.',
+    watch:'Momentum belongs to the member. Driving a session forward works best when the member is the one holding the wheel, not watching you steer.'
   },
-  strategist: {
-    name:'The Strategist',
-    tagline:'You bring order to complexity, and members leave with a plan they can follow.',
-    how:'Structured and clear. You sort a tangle of issues into priorities, sequence the work, and close every session on concrete action steps. Members come away knowing exactly what comes next.',
-    fit:'Members juggling too many moving parts, members ready to execute, and members who think best with frameworks and roadmaps.',
-    watch:'A plan can outpace a member who is still deciding whether to commit. Space for doubt and discovery keeps the plan theirs rather than yours.'
+  supportive: {
+    name:'Supportive & Encouraging',
+    tagline:'You create the safe space, and members leave believing they can do this.',
+    how:'Warm and steady. You notice the person behind the business, make it safe to share struggles, and rebuild confidence after a setback. Members come away feeling capable, encouraged and less alone.',
+    fit:'First time founders, members coming off a failure or a hard stretch, and members whose biggest obstacle is confidence rather than knowledge.',
+    watch:'Comfort can take the place of progress. Closing even the gentlest session on one small, specific action keeps momentum alive.'
   },
-  challenger: {
-    name:'The Challenger',
+  strategic: {
+    name:'Strategic',
+    tagline:'You see the long game, and members leave knowing how today fits into it.',
+    how:'Big picture and deliberate. You connect today’s problem to long-term goals, weigh where time, money and energy will matter most, and help members line up their resources behind the plan.',
+    fit:'Members facing a major decision, members spreading their resources too thin, and members planning their next stage of growth.',
+    watch:'A long view can feel distant to a member who is overwhelmed today. Tying the plan back to one near term step keeps it real.'
+  },
+  challenging: {
+    name:'Challenging & Honest',
     tagline:'You say the thing no one else will, and members leave thinking more sharply.',
-    how:'Direct and candid. You surface hidden assumptions, stress test ideas, and hold members to their commitments. Members come away with sharper thinking and a clear sense of what is not working.',
+    how:'Direct and candid. You surface hidden assumptions, stress test ideas, give straight feedback and hold members to their commitments. Members come away with sharper thinking and a clear sense of what is not working.',
     fit:'Members stuck in a loop, members who want accountability, and members preparing to face investors, partners or customers.',
     watch:'Candor lands on top of trust. With a member who is new, overwhelmed or recovering from a setback, the same words can read as criticism rather than support.'
   },
-  supporter: {
-    name:'The Supporter',
-    tagline:'You create the safe space, and members leave believing they can do this.',
-    how:'Warm and steady. You notice the person behind the business, make it safe to share struggles, and rebuild confidence after a setback. Members come away feeling capable and less alone.',
-    fit:'First time founders, members coming off a failure or a hard stretch, and members whose biggest obstacle is confidence rather than knowledge.',
-    watch:'Comfort can take the place of progress. Closing even the gentlest session on one small, specific action keeps momentum alive.'
+  collaborative: {
+    name:'Collaborative',
+    tagline:'You think it through together, and members leave owning the answer.',
+    how:'Open and curious. You treat each session as a shared problem, ask more than you tell, and build the answer through dialogue so the member owns the decision.',
+    fit:'Members exploring an early idea, members who want a thinking partner, and members who resist being told what to do.',
+    watch:'A member under time pressure may want more direction than dialogue alone provides. Collaboration lands best when it still closes on a clear next step.'
   }
 };
 
@@ -1070,80 +1081,91 @@ const STYLES = {
 const QUESTIONS = [
   { q:'A member joins a session overwhelmed and starts talking through everything at once. How do you naturally respond?',
     opts:{
-      guide:'Let them get it out, then ask "Where do you feel most stuck right now?" and follow that thread.',
-      strategist:'Listen, then sort what they said into two or three buckets and ask which one to tackle today.',
-      challenger:'Listen for the assumption sitting underneath it all, then name it and ask whether it holds up.',
-      supporter:'Slow the pace, acknowledge how much they are carrying, and make sure they feel steady before digging in.'
+      collaborative:'Let them get it out, then ask "Where do you feel most stuck right now?" and work through it together.',
+      strategic:'Listen for how it all connects to their bigger goal, then help them see which issue matters most in the long run.',
+      action:'Listen, then pick the one thing they can move on today and get them started on it.',
+      challenging:'Listen for the assumption sitting underneath it all, then name it and ask whether it holds up.',
+      supportive:'Slow the pace, acknowledge how much they are carrying, and make sure they feel steady before digging in.'
     }},
   { q:'You have an insight on a complex problem a member is facing. How do you deliver it?',
     opts:{
-      guide:'Ask questions until they can state the insight in their own words, then agree on the action together.',
-      strategist:'Lay out the insight, why it is happening, and a sequenced plan with one clear first step.',
-      challenger:'State the insight plainly, including the part they may not want to hear, then name the action.',
-      supporter:'Frame it around what is already working, then offer one small action that feels doable.'
+      collaborative:'Ask questions until they can state the insight in their own words, then shape the action together.',
+      strategic:'Lay out the insight, why it is happening, and how it affects where they want to be a year from now.',
+      action:'State the insight in a sentence, then go straight to a specific action they can take this week.',
+      challenging:'State the insight plainly, including the part they may not want to hear, then name the action.',
+      supportive:'Frame it around what is already working, then offer one small action that feels doable.'
     }},
   { q:'A member asks you to make a major, high stakes decision for them. What is your instinct?',
     opts:{
-      guide:'Ask what a good outcome looks like to them, and let their own criteria lead them to the call.',
-      strategist:'Build a simple decision grid with them: the options, the trade-offs, and what each one costs.',
-      challenger:'Argue the side they are leaning against, so they test their conviction before they decide.',
-      supporter:'Explore what is driving the urge to hand it off, and help them trust their own judgment.'
+      collaborative:'Talk it through as partners: what a good outcome looks like to them, and what their gut is telling them.',
+      strategic:'Weigh each option with them against their long-term goals and the resources each one would take.',
+      action:'Help them set a decision deadline and a small test that will produce an answer quickly.',
+      challenging:'Argue the side they are leaning against, so they test their conviction before they decide.',
+      supportive:'Explore what is driving the urge to hand it off, and help them trust their own judgment.'
     }},
   { q:'A new member asks about your background. What do you lead with?',
     opts:{
-      guide:'A moment when someone asked me the right question at the right time, and how that shapes the way I advise.',
-      strategist:'The systems I have built and fixed, and the frameworks I rely on when things get messy.',
-      challenger:'The hardest mistakes I have made and what they cost me, without polishing them.',
-      supporter:'The times I was stuck and unsure of myself, so they know that feeling is normal.'
+      collaborative:'How I like to work: side by side, thinking out loud, building answers together.',
+      strategic:'The long-term bets I have made, the ones that paid off and the ones that did not.',
+      action:'The things I have launched and shipped, and how I got them off the ground.',
+      challenging:'The hardest mistakes I have made and what they cost me, without polishing them.',
+      supportive:'The times I was stuck and unsure of myself, so they know that feeling is normal.'
     }},
   { q:'How do you tend to open the first five minutes of a session?',
     opts:{
-      guide:'Ask what would make this session a win, and let their answer set the agenda.',
-      strategist:'Confirm the goal, recap last session’s action steps, and set a clear agenda for our time.',
-      challenger:'Go straight to last session’s commitments and ask what actually got done.',
-      supporter:'Check in on how they are doing as a person before we get into the business.'
+      collaborative:'Ask what would make this session a win, and build the agenda together from their answer.',
+      strategic:'Revisit their bigger goal and check whether today’s topic actually serves it.',
+      action:'Recap last session’s action steps and find out what moved.',
+      challenging:'Ask what they have been avoiding since our last session.',
+      supportive:'Check in on how they are doing as a person before we get into the business.'
     }},
   { q:'A member arrives burned out and embarrassed about a failed launch. Once you have acknowledged how they feel, where do you take it?',
     opts:{
-      guide:'Ask what they learned from it and what they would do differently next time.',
-      strategist:'Separate what failed from what worked, so the next step becomes clear.',
-      challenger:'Help them own the parts that were in their control, so the same thing does not happen twice.',
-      supporter:'Give the feeling real room. The debrief can wait until they are ready for it.'
+      collaborative:'Debrief it together: what they learned, and what we would each do differently next time.',
+      strategic:'Put it in perspective: what this means for the long-term plan, and what still holds.',
+      action:'Find one small win they can get this week to rebuild momentum.',
+      challenging:'Help them own the parts that were in their control, so the same thing does not happen twice.',
+      supportive:'Give the feeling real room. The debrief can wait until they are ready for it.'
     }},
   { q:'Time is almost up and the member is still bringing up new questions. How do you close?',
     opts:{
-      guide:'Ask them to choose the one question that matters most for the minutes left, and save the rest.',
-      strategist:'Summarize the action steps we agreed on, then point them to booking a follow-up for the rest.',
-      challenger:'Name it directly: we are at time, and what they are raising deserves its own session.',
-      supporter:'Close warmly, reassure them the rest will keep, and invite them to book a follow-up.'
+      collaborative:'Agree together on the one question that matters most for the minutes left, and save the rest.',
+      strategic:'Note how the open questions connect, and invite a follow-up session to map them as a whole.',
+      action:'Lock in one action step for this week, then point them to booking a follow-up for the rest.',
+      challenging:'Name it directly: we are at time, and what they are raising deserves its own session.',
+      supportive:'Close warmly, reassure them the rest will keep, and invite them to book a follow-up.'
     }},
   { q:'Two minutes in, you already know what the member needs to do. What is your next move?',
     opts:{
-      guide:'Keep asking questions until they get there themselves.',
-      strategist:'Hold it, finish diagnosing, then map the solution with them step by step.',
-      challenger:'Ask one pointed question that puts the answer right in front of them.',
-      supporter:'Keep listening. They may need to be heard before they are ready for the answer.'
+      collaborative:'Keep asking questions and build toward it together.',
+      strategic:'Hold it until I understand how the problem fits into the bigger picture.',
+      action:'Ask a couple of questions to confirm it, then move quickly to what they will do about it.',
+      challenging:'Ask one pointed question that puts the answer right in front of them.',
+      supportive:'Keep listening. They may need to be heard before they are ready for the answer.'
     }},
   { q:'A member’s approach is completely different from the one that made you successful. How do you respond?',
     opts:{
-      guide:'Ask what led them to this approach, and let their reasoning reveal its strengths and gaps.',
-      strategist:'Lay both approaches side by side and weigh them against their goals and stage.',
-      challenger:'Stress test their approach with the toughest questions an investor or customer would ask.',
-      supporter:'Affirm what is sound in it first, then offer my experience as one more input.'
+      collaborative:'Ask what led them to this approach, and combine the best of their thinking and mine.',
+      strategic:'Weigh both approaches against their long-term goals and the resources they have.',
+      action:'Propose a quick, low cost test so real results settle the question.',
+      challenging:'Stress test their approach with the toughest questions an investor or customer would ask.',
+      supportive:'Affirm what is sound in it first, then offer my experience as one more input.'
     }},
   { q:'A member has missed the action steps they committed to, for the second session in a row. What do you do?',
     opts:{
-      guide:'Ask what got in the way and what they would change about the commitment.',
-      strategist:'Break the commitment into smaller steps with specific dates attached.',
-      challenger:'Name the pattern and ask honestly whether this goal still matters to them.',
-      supporter:'Normalize it, look at what got in the way, and reset at a pace they can sustain.'
+      collaborative:'Ask what got in the way and rework the commitment together.',
+      strategic:'Check whether the commitment still serves their long-term goal or needs to change.',
+      action:'Break it into smaller steps with specific dates attached.',
+      challenging:'Name the pattern and ask honestly whether this goal still matters to them.',
+      supportive:'Normalize it, look at what got in the way, and reset at a pace they can sustain.'
     }},
   { q:'Which sentence would you most want a member to say about you after working together?',
     opts:{
-      guide:'"They helped me figure it out myself."',
-      strategist:'"They gave me a plan I could actually follow."',
-      challenger:'"They told me what no one else would."',
-      supporter:'"They made me feel like I could do this."'
+      collaborative:'"We figured it out together."',
+      strategic:'"They helped me see the bigger picture."',
+      action:'"They got me moving."',
+      challenging:'"They told me what no one else would."',
+      supportive:'"They made me feel like I could do this."'
     }}
 ];
 
@@ -1186,7 +1208,7 @@ qEl.addEventListener('click', e=>{
 });
 
 function score(){
-  const counts = {guide:0, strategist:0, challenger:0, supporter:0};
+  const counts = {}; STYLE_ORDER.forEach(k=> counts[k] = 0);
   answers.forEach(a=>{ if(a) counts[a]++; });
   const tiebreak = answers[answers.length-1];
   /* rank by count; ties go to the final question's pick, then to whichever
@@ -1215,7 +1237,7 @@ function showResult(r){
   const total = QUESTIONS.length;
   document.getElementById('saMix').innerHTML = STYLE_ORDER.map(k=>{
     const n = (r.counts && r.counts[k]) || 0;
-    return `<div class="sa-row${k===r.primary?' top':''}"><span class="sa-lab">${STYLES[k].name.replace('The ','')}</span><span class="sa-track"><span class="sa-fill" style="width:${(n/total)*100}%"></span></span><span class="sa-n">${n}</span></div>`;
+    return `<div class="sa-row${k===r.primary?' top':''}"><span class="sa-lab">${STYLES[k].name}</span><span class="sa-track"><span class="sa-fill" style="width:${(n/total)*100}%"></span></span><span class="sa-n">${n}</span></div>`;
   }).join('');
   document.getElementById('saResultSecondary').textContent = r.secondary
     ? `Your secondary style is ${STYLES[r.secondary].name}. It tends to show up when your first instinct is not the right fit for the moment.`
@@ -1232,17 +1254,18 @@ function finish(){
   const completedAt = new Date().toISOString();
   const attempts = (existing.attempts || 0) + 1;
   p[SA_ID] = { status:'completed', startedAt, completedAt, attempts,
-               primaryStyle:r.primary, secondaryStyle:r.secondary, counts:r.counts };
+               primaryStyle:r.primary, secondaryStyle:r.secondary, primaryStyleName:STYLES[r.primary].name, counts:r.counts };
   saveProgress(p);
   const name = getAdvisorName() || 'Unknown';
   const title = 'Your Advisor Style';
   postToSheet({ type:'completion', name, trainingId:SA_ID, trainingTitle:title,
-    startedAt, completedAt, score:'', total:'', result:STYLES[r.primary].name.replace('The ',''), attempts });
+    startedAt, completedAt, score:'', total:'', result:STYLES[r.primary].name, attempts });
   postToSheet({ type:'style', name, completedAt,
-    primaryStyle: STYLES[r.primary].name.replace('The ',''),
-    secondaryStyle: r.secondary ? STYLES[r.secondary].name.replace('The ','') : '',
-    guide:r.counts.guide, strategist:r.counts.strategist,
-    challenger:r.counts.challenger, supporter:r.counts.supporter,
+    primaryStyle: STYLES[r.primary].name,
+    secondaryStyle: r.secondary ? STYLES[r.secondary].name : '',
+    actionOriented:r.counts.action, supportiveEncouraging:r.counts.supportive,
+    strategic:r.counts.strategic, challengingHonest:r.counts.challenging,
+    collaborative:r.counts.collaborative,
     answers: answers.join(','), attempts });
   showResult(r);
 }
@@ -1270,7 +1293,7 @@ window.sa_open = function(){
   const e = getProgress()[SA_ID];
   const hero = document.querySelector('#screen-style-discovery .hero');
   document.getElementById('sa-quiz').style.display = 'none';
-  if(e && e.status === 'completed' && e.primaryStyle){
+  if(e && e.status === 'completed' && STYLES[e.primaryStyle]){
     showResult({ primary:e.primaryStyle, secondary:e.secondaryStyle || '', counts:e.counts || {} });
   } else {
     document.getElementById('sa-result').style.display = 'none';

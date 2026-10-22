@@ -5,6 +5,9 @@
  * Advisor Style Discovery. Until this handler is added, those posts land in
  * the "Unrouted" tab with the raw body, so nothing is lost.
  *
+ * Style names match the SideKix app exactly: Action Oriented,
+ * Supportive & Encouraging, Strategic, Challenging & Honest, Collaborative.
+ *
  * To install:
  *   1. Paste handleStyle() below into the existing script.
  *   2. In doPost, next to the other type checks, add:
@@ -19,8 +22,10 @@
  */
 function handleStyle(body) {
   var HEADERS = ['Advisor Name', 'Primary Style', 'Secondary Style',
-                 'Guide', 'Strategist', 'Challenger', 'Supporter',
+                 'Action Oriented', 'Supportive & Encouraging', 'Strategic',
+                 'Challenging & Honest', 'Collaborative',
                  'Answers', 'Attempts', 'First Completed At', 'Last Completed At'];
+  var FIRST_COL = 11; // First Completed At, 1-based
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName('Styles');
   if (!sh) {
@@ -29,12 +34,12 @@ function handleStyle(body) {
     sh.setFrozenRows(1);
   }
   var name = String(body.name || 'Unknown').trim();
+  var at = body.completedAt || new Date().toISOString();
   var row = [name, body.primaryStyle || '', body.secondaryStyle || '',
-             Number(body.guide) || 0, Number(body.strategist) || 0,
-             Number(body.challenger) || 0, Number(body.supporter) || 0,
-             body.answers || '', Number(body.attempts) || 1,
-             body.completedAt || new Date().toISOString(),
-             body.completedAt || new Date().toISOString()];
+             Number(body.actionOriented) || 0, Number(body.supportiveEncouraging) || 0,
+             Number(body.strategic) || 0, Number(body.challengingHonest) || 0,
+             Number(body.collaborative) || 0,
+             body.answers || '', Number(body.attempts) || 1, at, at];
 
   var last = sh.getLastRow();
   if (last > 1) {
@@ -42,7 +47,7 @@ function handleStyle(body) {
     for (var i = 0; i < names.length; i++) {
       if (String(names[i][0]).trim().toLowerCase() === name.toLowerCase()) {
         var r = i + 2;
-        row[9] = sh.getRange(r, 10).getValue() || row[9]; // keep first completion
+        row[FIRST_COL - 1] = sh.getRange(r, FIRST_COL).getValue() || at; // keep first completion
         sh.getRange(r, 1, 1, row.length).setValues([row]);
         return ContentService.createTextOutput(JSON.stringify({ok: true, updated: true}))
           .setMimeType(ContentService.MimeType.JSON);

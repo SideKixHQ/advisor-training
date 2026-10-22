@@ -42,20 +42,23 @@ The **prefix** namespaces that module's element IDs and its global functions
 ### Before Module 1: Your Advisor Style (`style-discovery`)
 
 Not a module. An eleven question style Discovery with no right answers: every
-option meets the SideKix Standard and maps to one of four styles (Guide,
-Strategist, Challenger, Supporter). The most chosen style is the advisor's
-Primary Style; ties go to the answer on the final question, which doubles as
-the tiebreaker. The runner up is the Secondary Style. Options are shuffled on
-render. No pass/fail, no certificate; retakes overwrite the result.
+option meets the SideKix Standard and maps to one of the five Advisor Styles
+used in the SideKix app, named identically: Action Oriented, Supportive &
+Encouraging, Strategic, Challenging & Honest, Collaborative. The most chosen
+style is the advisor's Primary Style; ties go to the answer on the final
+question, which doubles as the tiebreaker. The runner up is the Secondary
+Style. Options are shuffled on render. No pass/fail, no certificate; retakes
+overwrite the result.
 
 On finish it posts a `completion` record (Result = primary style, Score and
 Out Of blank) and a `style` record:
 
 ```json
 {"type":"style","name":"Jane Doe","completedAt":"2026-10-22T18:57:14.336Z",
- "primaryStyle":"Challenger","secondaryStyle":"Supporter",
- "guide":3,"strategist":0,"challenger":5,"supporter":3,
- "answers":"challenger,guide,...","attempts":1}
+ "primaryStyle":"Challenging & Honest","secondaryStyle":"Supportive & Encouraging",
+ "actionOriented":0,"supportiveEncouraging":3,"strategic":0,
+ "challengingHonest":5,"collaborative":3,
+ "answers":"challenging,collaborative,...","attempts":1}
 ```
 
 `style` records land in `Unrouted` until `apps-script-style-handler.gs` is
